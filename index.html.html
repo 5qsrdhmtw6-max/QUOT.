@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>QUOT.</title>
+  
+  <!-- Apple Web App & Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='28' fill='%23000000'/><text x='50%25' y='65%25' font-family='Arial Black,Impact,sans-serif' font-weight='900' font-size='42' fill='%23ffffff' text-anchor='middle'>Q.</text></svg>">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Typography: Bowlby One SC & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons (Lucide) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --bg-black: #000000;
+      --card-glass: rgba(18, 18, 22, 0.72);
+      --card-pinned: rgba(24, 24, 28, 0.88);
+      --glass-border: rgba(255, 255, 255, 0.10);
+      --glass-border-bright: rgba(255, 255, 255, 0.32);
+      --apple-ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --apple-spring: cubic-bezier(0.2, 0.9, 0.3, 1.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-black);
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: calc(50px + env(safe-area-inset-bottom, 20px));
+    }
+
+    .brand-font {
+      font-family: 'Bowlby One SC', -apple-system, Impact, sans-serif;
+      letter-spacing: -0.04em;
+      transform: scaleY(1.05);
+      display: inline-block;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+
+    /* Üst Şeffaf Bar */
+    .glass-header {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      z-index: 80;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ABSNT & CHAIN Tarzı Loş, Şık ve Aşırı Parlamayan Ambient Glow */
+    .logo-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 16px;
+    }
+
+    .logo-ambient-glow {
+      position: absolute;
+      width: 120px;
+      height: 48px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 75%);
+      filter: blur(14px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .logo-text {
+      text-shadow: 0 0 16px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Dynamic Island Toast */
+    #dynamic-island {
+      position: fixed;
+      top: calc(64px + env(safe-area-inset-top, 0px));
+      left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: rgba(20, 20, 24, 0.94);
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      padding: 8px 18px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 2000;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.85);
+      opacity: 0;
+      transition: all 0.4s var(--apple-ease);
+      pointer-events: none;
+    }
+    #dynamic-island.active {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Sabitlenenler Bölümü */
+    .pinned-wrapper {
+      position: relative;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 26px;
+      padding: 16px;
+      margin-bottom: 22px;
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+    }
+
+    .pinned-static-ambient {
+      position: absolute;
+      width: 420px;
+      height: 200px;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 48%, transparent 70%);
+      pointer-events: none;
+      filter: blur(40px);
+      z-index: 1;
+    }
+
+    .pinned-carousel {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding: 6px 2px 10px;
+      position: relative;
+      z-index: 2;
+    }
+    .pinned-carousel::-webkit-scrollbar { display: none; }
+    .pinned-carousel { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .pinned-carousel .note-card {
+      flex: 0 0 200px;
+      width: 200px;
+      height: 200px;
+      aspect-ratio: 1 / 1;
+      scroll-snap-align: start;
+    }
+    @media (max-width: 480px) {
+      .pinned-carousel .note-card {
+        flex: 0 0 185px;
+        width: 185px;
+        height: 185px;
+      }
+    }
+
+    /* Not Kartları */
+    .note-card {
+      background: var(--card-glass);
+      border: 0.5px solid var(--glass-border);
+      border-radius: 22px;
+      padding: 16px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      aspect-ratio: 1 / 1;
+      min-height: 165px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      position: relative;
+      transform-origin: center center;
+      transition: transform 0.28s var(--apple-spring), border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .note-card:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    }
+    .note-card.is-pinned {
+      background: var(--card-pinned);
+      border-color: rgba(255, 255, 255, 0.22);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    /* Dağınık Organik Rotasyonlar */
+    .rot-0 { transform: rotate(-1.3deg); }
+    .rot-1 { transform: rotate(1.1deg); }
+    .rot-2 { transform: rotate(-0.7deg); }
+    .rot-3 { transform: rotate(1.5deg); }
+    .rot-4 { transform: rotate(-1.6deg); }
+    .rot-5 { transform: rotate(0.6deg); }
+
+    .note-card:active {
+      transform: scale(0.96) !important;
+      border-color: var(--glass-border-bright);
+    }
+
+    .note-card.bounce-active {
+      animation: microBounce 0.42s var(--apple-spring);
+    }
+
+    @keyframes microBounce {
+      0% { transform: scale(0.96); }
+      45% { transform: scale(1.025); }
+      75% { transform: scale(0.99); }
+      100% { transform: scale(1); }
+    }
+
+    /* Butonlar & İkonlar */
+    .action-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.4);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    .action-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+    .action-icon-btn.is-pinned-btn {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.16);
+    }
+    .action-icon-btn:active {
+      transform: scale(0.88);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      z-index: 1000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s var(--apple-ease), visibility 0.3s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .bottom-sheet {
+      width: 100%;
+      max-width: 580px;
+      background: rgba(18, 18, 22, 0.94);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border-top: 0.5px solid rgba(255, 255, 255, 0.2);
+      border-left: 0.5px solid rgba(255, 255, 255, 0.08);
+      border-right: 0.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: 32px 32px 0 0;
+      padding: 10px 22px 38px;
+      box-shadow: 0 -20px 60px rgba(0,0,0,0.85);
+      transform: translateY(100%);
+      transition: transform 0.35s var(--apple-ease);
+      max-height: 88vh;
+      overflow-y: auto;
+      touch-action: pan-y;
+    }
+    .modal-overlay.open .bottom-sheet {
+      transform: translateY(0);
+    }
+
+    .sheet-handle-zone {
+      width: 100%;
+      padding: 8px 0 14px;
+      cursor: grab;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .sheet-handle-bar {
+      width: 44px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Dynamic Island Bildirimi -->
+  <div id="dynamic-island">
+    <i data-lucide="check" style="width: 15px; height: 15px;"></i>
+    <span id="island-message">Kaydedildi</span>
+  </div>
+
+  <header class="glass-header px-4 py-3 flex items-center justify-between">
+    <!-- Sol Dengeleyici Boşluk -->
+    <div class="w-9 h-9"></div>
+
+    <!-- Ortada Loş ve Zarif Parlayan QUOT. Logosu (ABSNT & CHAIN Stili) -->
+    <div class="logo-container cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+      <div class="logo-ambient-glow"></div>
+      <h1 class="brand-font logo-text text-2xl text-white tracking-tight relative z-10">
+        QUOT.
+      </h1>
+    </div>
+
+    <!-- Sağ Üstte Veri Aktarım / Kopyalama Butonu -->
+    <button 
+      onclick="openBackupModal()" 
+      class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition hover:bg-white/10"
+      title="Veri Aktarımı & Yedekleme"
+    >
+      <i data-lucide="arrow-down-up" style="width: 16px; height: 16px;"></i>
+    </button>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 pt-5 pb-16 relative z-10">
+
+    <!-- 1. SABİTLENENLER ALANI (EN ÜSTTE) -->
+    <section id="pinned-section" class="pinned-wrapper hidden">
+      <!-- Sabit Monokrom Işık Parlaması -->
+      <div class="pinned-static-ambient"></div>
+
+      <div class="flex items-center justify-between mb-3 px-1 relative z-10">
+        <span class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+          <i data-lucide="pin" style="width: 13px; height: 13px;"></i>
+          Sabitlenenler
+        </span>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-white/40 uppercase tracking-wider">Yana Kaydır</span>
+          <span id="pinned-counter" class="text-xs bg-white/15 px-2 py-0.5 rounded-full font-bold">0</span>
+        </div>
+      </div>
+
+      <!-- Yatay Kaydırmalı Kart Şeridi -->
+      <div id="pinned-carousel" class="pinned-carousel"></div>
+    </section>
+
+    <!-- 2. ARAMA ÇUBUĞU (SABİTLENENLER İLE TÜM NOTLAR ARASINDA) -->
+    <div class="mb-5 relative">
+      <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35" style="width: 16px; height: 16px;"></i>
+      <input 
+        type="text" 
+        id="search-input" 
+        placeholder="Başlık veya düşünce ara..." 
+        oninput="handleSearch(this.value)"
+        class="w-full h-11 pl-10 pr-9 bg-white/5 border border-white/10 rounded-2xl text-sm text-white placeholder-white/30 outline-none focus:border-white/35 focus:bg-white/10 transition backdrop-blur-xl"
+      >
+      <button 
+        id="search-clear-btn" 
+        onclick="clearSearch()" 
+        class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+      >
+        <i data-lucide="x" style="width: 15px; height: 15px;"></i>
+      </button>
+    </div>
+
+    <!-- 3. TÜM DÜŞÜNCELER ALANI -->
+    <section>
+      <div class="flex items-center justify-between mb-3.5 px-1">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
+            <i data-lucide="grid" style="width: 13px; height: 13px;"></i>
+            Tüm Düşünceler
+          </span>
+          <span id="regular-counter" class="text-xs text-white/40 font-semibold bg-white/5 px-2 py-0.5 rounded-full">0</span>
+        </div>
+
+        <!-- '+' BUTONU: TÜM NOTLAR KISMININ SAĞ ÜST TARAFINDA -->
+        <button 
+          onclick="openAddModal()" 
+          class="h-8 px-3.5 rounded-full bg-white text-black font-bold text-xs flex items-center gap-1.5 active:scale-95 transition shadow-lg hover:bg-neutral-200 cursor-pointer"
+        >
+          <i data-lucide="plus" style="width: 14px; height: 14px; stroke-width: 3;"></i>
+          <span>Ekle</span>
+        </button>
+      </div>
+
+      <!-- KARE VE DAĞINIK IZGARA -->
+      <div id="regular-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3.5"></div>
+      
+      <div id="empty-state" class="hidden text-center py-16 text-white/30 text-sm">
+        Henüz bir düşünce kaydetmedin. Yukarıdaki + Ekle butonuna basarak başla.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- NOT EKLE / DÜZENLE MODAL (BOTTOM SHEET) -->
+  <div id="note-modal-overlay" class="modal-overlay" onclick="handleOverlayClick(event)">
+    <div id="bottom-sheet" class="bottom-sheet">
+      <div id="sheet-handle" class="sheet-handle-zone">
+        <div class="sheet-handle-bar"></div>
+        <span class="text-[10px] uppercase tracking-wider text-white/30 font-semibold">Kapatmak için kaydır</span>
+      </div>
+
+      <h3 id="sheet-title" class="text-lg font-bold mb-4">Yeni Düşünce</h3>
+
+      <form id="note-form" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="form-note-id">
+
+        <div class="mb-3">
+          <label class="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1.5">Başlık</label>
+          <input 
+            type="text" 
+            id="form-title" 
+            class="brand-font w-full h-12 px-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 outline-none focus:border-white/35 focus:bg-white/10 transition uppercase tracking-normal"
+            placeholder="BAŞLIK..." 
+            required
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1.5">Düşünce / Detay</label>
+          <textarea 
+            id="form-content" 
+            class="w-full min-h-[110px] p-3.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-white/30 outline-none focus:border-white/35 focus:bg-white/10 transition resize-y"
+            placeholder="Aklına gelen notu buraya yaz..."
+            required
+          ></textarea>
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full h-12 rounded-xl bg-white text-black font-semibold text-sm active:scale-95 transition shadow-lg cursor-pointer"
+        >
+          Kaydet
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- VERİ AKTARIM / YEDEKLEME MODAL -->
+  <div id="backup-modal-overlay" class="modal-overlay" onclick="if(event.target===this) closeBackupModal()">
+    <div class="bottom-sheet">
+      <div class="sheet-handle-zone" onclick="closeBackupModal()">
+        <div class="sheet-handle-bar"></div>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Veri Yedekleme & Aktarım</h3>
+      <p class="text-xs text-white/60 mb-5">Notlarını panoya kopyalayarak başka bir cihaza kolayca aktarabilirsin.</p>
+      <div class="flex gap-2.5">
+        <button onclick="exportData()" class="flex-1 h-12 rounded-xl bg-white text-black font-semibold text-sm active:scale-95 transition">Panoya Kopyala</button>
+        <button onclick="importData()" class="flex-1 h-12 rounded-xl bg-white/10 border border-white/15 text-white font-semibold text-sm active:scale-95 transition">İçe Aktar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'quot_notes_store_v1';
+    let notes = [];
+    let activeFilterQuery = '';
+
+    const INITIAL_NOTES = [
+      {
+        id: '1',
+        title: 'SADELİK',
+        content: 'Sadeliğe ulaşmak, karmaşıklığın ötesinde bir zarafettir.',
+        pinned: true,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: '2',
+        title: 'MÜKEMMELLİK',
+        content: 'Mükemmellik eklenecek bir şey kalmadığında değil, çıkarılacak bir şey kalmadığında elde edilir.',
+        pinned: true,
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        id: '3',
+        title: 'DİSİPLİN',
+        content: 'Zinciri kırma; her gün küçük de olsa bir adım at.',
+        pinned: false,
+        createdAt: new Date(Date.now() - 7200000).toISOString()
+      },
+      {
+        id: '4',
+        title: 'ODAK',
+        content: 'Gürültüyü kapat, zihnini sadece şu ana kilitle.',
+        pinned: false,
+        createdAt: new Date(Date.now() - 86400000).toISOString()
+      }
+    ];
+
+    function loadNotes() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          notes = JSON.parse(stored);
+        } else {
+          notes = INITIAL_NOTES;
+          saveNotes();
+        }
+      } catch (e) {
+        notes = INITIAL_NOTES;
+      }
+    }
+
+    function saveNotes() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+      } catch (e) {}
+    }
+
+    function showToast(message) {
+      const el = document.getElementById('dynamic-island');
+      document.getElementById('island-message').textContent = message;
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 2200);
+    }
+
+    function getRotationClass(id) {
+      let hash = 0;
+      for (let i = 0; i < id.length; i++) {
+        hash = (hash << 5) - hash + id.charCodeAt(i);
+        hash |= 0;
+      }
+      return `rot-${Math.abs(hash) % 6}`;
+    }
+
+    function renderCard(note, isPinnedArea = false) {
+      const rot = isPinnedArea ? '' : getRotationClass(note.id);
+      const title = (note.title || 'NOT').toUpperCase();
+
+      return `
+        <article 
+          class="note-card ${rot} ${note.pinned ? 'is-pinned' : ''}" 
+          data-id="${note.id}"
+          onclick="handleCardBounce(event, this)"
+        >
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] text-white/40 tracking-wider">
+                ${new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+              </span>
+            </div>
+            <!-- Logo Fontunda Başlık -->
+            <h4 class="brand-font text-sm text-white line-clamp-1 mb-1.5 leading-tight">${escapeHtml(title)}</h4>
+            <p class="text-xs text-white/65 line-clamp-3 leading-relaxed break-words">${escapeHtml(note.content)}</p>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-white/5 mt-2">
+            <button 
+              class="action-icon-btn ${note.pinned ? 'is-pinned-btn' : ''}" 
+              onclick="event.stopPropagation(); togglePin('${note.id}')"
+              title="${note.pinned ? 'Sabitlemeyi Kaldır' : 'Başa Sabitle'}"
+            >
+              <i data-lucide="pin" style="width: 14px; height: 14px;"></i>
+            </button>
+
+            <div class="flex items-center gap-0.5">
+              <button 
+                class="action-icon-btn" 
+                onclick="event.stopPropagation(); copyNote('${note.id}')"
+                title="Panoya Kopyala"
+              >
+                <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
+              </button>
+              <button 
+                class="action-icon-btn" 
+                onclick="event.stopPropagation(); openEditModal('${note.id}')"
+                title="Düzenle"
+              >
+                <i data-lucide="pencil" style="width: 13px; height: 13px;"></i>
+              </button>
+              <button 
+                class="action-icon-btn text-white/35 hover:text-white" 
+                onclick="event.stopPropagation(); deleteNote('${note.id}')"
+                title="Sil"
+              >
+                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    window.handleCardBounce = function(e, cardEl) {
+      if (e.target.closest('.action-icon-btn')) return;
+
+      if (navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+
+      cardEl.classList.remove('bounce-active');
+      void cardEl.offsetWidth; // Force reflow
+      cardEl.classList.add('bounce-active');
+    };
+
+    function renderApp() {
+      const pinnedSection = document.getElementById('pinned-section');
+      const pinnedCarousel = document.getElementById('pinned-carousel');
+      const regularGrid = document.getElementById('regular-grid');
+      const emptyState = document.getElementById('empty-state');
+      const pinnedCounter = document.getElementById('pinned-counter');
+      const regularCounter = document.getElementById('regular-counter');
+
+      const filtered = notes.filter(n => {
+        if (!activeFilterQuery) return true;
+        const q = activeFilterQuery.toLowerCase();
+        return (n.title && n.title.toLowerCase().includes(q)) || (n.content && n.content.toLowerCase().includes(q));
+      });
+
+      const pinnedList = filtered.filter(n => n.pinned);
+      const regularList = filtered.filter(n => !n.pinned);
+
+      // Sabitlenenler Alanı
+      if (pinnedList.length > 0) {
+        pinnedSection.classList.remove('hidden');
+        pinnedCarousel.innerHTML = pinnedList.map(n => renderCard(n, true)).join('');
+        pinnedCounter.textContent = pinnedList.length;
+      } else {
+        pinnedSection.classList.add('hidden');
+        pinnedCarousel.innerHTML = '';
+      }
+
+      // Tüm Notlar Alanı
+      regularCounter.textContent = regularList.length;
+      if (regularList.length > 0) {
+        regularGrid.innerHTML = regularList.map(n => renderCard(n, false)).join('');
+        emptyState.classList.add('hidden');
+      } else {
+        regularGrid.innerHTML = '';
+        if (pinnedList.length === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          emptyState.classList.add('hidden');
+        }
+      }
+
+      lucide.createIcons();
+    }
+
+    window.togglePin = function(id) {
+      const note = notes.find(n => n.id === id);
+      if (!note) return;
+      note.pinned = !note.pinned;
+      saveNotes();
+      renderApp();
+      showToast(note.pinned ? 'Başa sabitlendi' : 'Sabitleme kaldırıldı');
+    };
+
+    window.copyNote = function(id) {
+      const note = notes.find(n => n.id === id);
+      if (!note) return;
+      const text = `${note.title ? note.title + '\n' : ''}${note.content}`;
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Panoya kopyalandı');
+    };
+
+    window.deleteNote = function(id) {
+      notes = notes.filter(n => n.id !== id);
+      saveNotes();
+      renderApp();
+      showToast('Düşünce silindi');
+    };
+
+    window.handleSearch = function(query) {
+      activeFilterQuery = query.trim();
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (activeFilterQuery) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+      renderApp();
+    };
+
+    window.clearSearch = function() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      handleSearch('');
+      input.focus();
+    };
+
+    // Modal & Swipe to Dismiss
+    const overlay = document.getElementById('note-modal-overlay');
+    const sheet = document.getElementById('bottom-sheet');
+    const handle = document.getElementById('sheet-handle');
+
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    window.openAddModal = function() {
+      document.getElementById('note-form').reset();
+      document.getElementById('form-note-id').value = '';
+      document.getElementById('sheet-title').textContent = 'Yeni Düşünce';
+      sheet.style.transform = '';
+      overlay.classList.add('open');
+      setTimeout(() => document.getElementById('form-title').focus(), 150);
+    };
+
+    window.openEditModal = function(id) {
+      const note = notes.find(n => n.id === id);
+      if (!note) return;
+      document.getElementById('form-note-id').value = note.id;
+      document.getElementById('form-title').value = note.title || '';
+      document.getElementById('form-content').value = note.content || '';
+      document.getElementById('sheet-title').textContent = 'Düşünceyi Düzenle';
+      sheet.style.transform = '';
+      overlay.classList.add('open');
+    };
+
+    window.closeModal = function() {
+      overlay.classList.remove('open');
+      setTimeout(() => { sheet.style.transform = ''; }, 320);
+    };
+
+    window.handleOverlayClick = function(e) {
+      if (e.target === overlay) closeModal();
+    };
+
+    function startDrag(e) {
+      startY = e.touches ? e.touches[0].clientY : e.clientY;
+      isDragging = true;
+      sheet.style.transition = 'none';
+    }
+
+    function moveDrag(e) {
+      if (!isDragging) return;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const deltaY = clientY - startY;
+      if (deltaY > 0) {
+        currentY = deltaY;
+        sheet.style.transform = `translateY(${deltaY}px)`;
+      } else {
+        currentY = deltaY * 0.2;
+        sheet.style.transform = `translateY(${currentY}px)`;
+      }
+    }
+
+    function endDrag() {
+      if (!isDragging) return;
+      isDragging = false;
+      sheet.style.transition = 'transform 0.35s var(--apple-ease)';
+      if (currentY > 80) {
+        closeModal();
+      } else {
+        sheet.style.transform = 'translateY(0)';
+      }
+      currentY = 0;
+    }
+
+    handle.addEventListener('touchstart', startDrag, { passive: true });
+    handle.addEventListener('touchmove', moveDrag, { passive: true });
+    handle.addEventListener('touchend', endDrag);
+
+    handle.addEventListener('mousedown', startDrag);
+    window.addEventListener('mousemove', moveDrag);
+    window.addEventListener('mouseup', endDrag);
+
+    window.handleFormSubmit = function(e) {
+      e.preventDefault();
+      const id = document.getElementById('form-note-id').value || Date.now().toString();
+      const title = document.getElementById('form-title').value.trim();
+      const content = document.getElementById('form-content').value.trim();
+
+      const existingIndex = notes.findIndex(n => n.id === id);
+      if (existingIndex !== -1) {
+        notes[existingIndex].title = title;
+        notes[existingIndex].content = content;
+      } else {
+        notes.unshift({
+          id,
+          title,
+          content,
+          pinned: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      saveNotes();
+      closeModal();
+      renderApp();
+      showToast('Düşünce kaydedildi');
+    };
+
+    window.openBackupModal = function() {
+      document.getElementById('backup-modal-overlay').classList.add('open');
+    };
+    window.closeBackupModal = function() {
+      document.getElementById('backup-modal-overlay').classList.remove('open');
+    };
+
+    window.exportData = function() {
+      const str = JSON.stringify(notes, null, 2);
+      const ta = document.createElement('textarea');
+      ta.value = str;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('JSON panoya kopyalandı');
+      closeBackupModal();
+    };
+
+    window.importData = function() {
+      const dataStr = prompt('Kopyaladığın JSON verisini buraya yapıştır:');
+      if (!dataStr) return;
+      try {
+        const parsed = JSON.parse(dataStr);
+        if (Array.isArray(parsed)) {
+          notes = parsed;
+          saveNotes();
+          renderApp();
+          showToast('Notlar başarıyla yüklendi');
+          closeBackupModal();
+        } else {
+          showToast('Geçersiz veri formatı');
+        }
+      } catch (e) {
+        showToast('JSON ayrıştırma hatası');
+      }
+    };
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadNotes();
+      renderApp();
+    });
+  </script>
+</body>
+</html>
