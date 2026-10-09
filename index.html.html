@@ -64,10 +64,12 @@
       top: 0;
       width: 100%;
       z-index: 80;
-      background: rgba(0, 0, 0, 0.72);
-      backdrop-filter: blur(24px) saturate(160%);
-      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      background: rgba(0, 0, 0, 0.76);
+      backdrop-filter: blur(26px) saturate(160%);
+      -webkit-backdrop-filter: blur(26px) saturate(160%);
       border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+      padding-top: calc(16px + env(safe-area-inset-top, 0px));
+      padding-bottom: 14px;
     }
 
     /* ABSNT & CHAIN Tarzı Loş, Şık ve Aşırı Parlamayan Ambient Glow */
@@ -76,24 +78,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 6px 16px;
+      padding: 8px 20px;
     }
 
     .logo-ambient-glow {
       position: absolute;
-      width: 120px;
-      height: 48px;
+      width: 155px;
+      height: 60px;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 75%);
-      filter: blur(14px);
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 52%, transparent 75%);
+      filter: blur(18px);
       pointer-events: none;
       z-index: 0;
     }
 
     .logo-text {
-      text-shadow: 0 0 16px rgba(255, 255, 255, 0.2);
+      text-shadow: 0 0 18px rgba(255, 255, 255, 0.22);
     }
 
     /* Dynamic Island Toast */
@@ -325,14 +327,14 @@
     <span id="island-message">Kaydedildi</span>
   </div>
 
-  <header class="glass-header px-4 py-3 flex items-center justify-between">
+  <header class="glass-header px-5 flex items-center justify-between">
     <!-- Sol Dengeleyici Boşluk -->
-    <div class="w-9 h-9"></div>
+    <div class="w-10 h-10"></div>
 
-    <!-- Ortada Loş ve Zarif Parlayan QUOT. Logosu (ABSNT & CHAIN Stili) -->
+    <!-- Ortada Daha Büyük, Aşağıya Alınmış ve Loş Parlayan QUOT. Logosu -->
     <div class="logo-container cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
       <div class="logo-ambient-glow"></div>
-      <h1 class="brand-font logo-text text-2xl text-white tracking-tight relative z-10">
+      <h1 class="brand-font logo-text text-3xl md:text-[34px] text-white tracking-tight relative z-10">
         QUOT.
       </h1>
     </div>
@@ -340,10 +342,10 @@
     <!-- Sağ Üstte Veri Aktarım / Kopyalama Butonu -->
     <button 
       onclick="openBackupModal()" 
-      class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition hover:bg-white/10"
+      class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition hover:bg-white/10"
       title="Veri Aktarımı & Yedekleme"
     >
-      <i data-lucide="arrow-down-up" style="width: 16px; height: 16px;"></i>
+      <i data-lucide="arrow-down-up" style="width: 17px; height: 17px;"></i>
     </button>
   </header>
 
